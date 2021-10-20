@@ -27,7 +27,7 @@ class _SigneUpScreenState extends State<SigneUpScreen> {
 
         return userCredential;
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'weak-password') {
+        if (e.code == 'weak password') {
           print('The password provided is too weak.');
         } else if (e.code == 'email-already-in-use') {
          
