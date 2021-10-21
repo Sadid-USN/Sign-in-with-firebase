@@ -1,4 +1,5 @@
 // @dart=2.9
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,14 +17,9 @@ class MyApp extends StatelessWidget {
   const MyApp({Key key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-
-
-
-
-    
     return MaterialApp(
       routes: {
-      "loginScreen" : (context) => const LoginScreen(),
+        "loginScreen": (context) => const LoginScreen(),
       },
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -43,6 +39,63 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  GlobalKey<FormState> emailFormState = GlobalKey<FormState>();
+  GlobalKey<FormState> passwordFormState = GlobalKey<FormState>();
+  var email, password;
+  signInWithEmail() async {
+    var emailFormData = emailFormState.currentState;
+    var passwordFormData = passwordFormState.currentState;
+    if (emailFormData.validate()) {
+      emailFormData.save();
+      try {
+        userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found') {
+          print('No user found for that email.');
+           AwesomeDialog(
+              context: context,
+              animType: AnimType.SCALE,
+              dialogType: DialogType.ERROR,
+              body: const Center(
+                child: Text(
+                  
+                  'Пользователь с этим лектронным\nадресом не найден',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontFamily: 'ptSerif' ),
+                ),
+              ),
+              title: 'This is Ignored',
+              desc: 'This is also Ignored',
+              btnOkOnPress: () {},
+            ).show();
+        } else if (e.code == 'wrong-password') {
+          AwesomeDialog(
+              context: context,
+              animType: AnimType.SCALE,
+              dialogType: DialogType.ERROR,
+              body: const Center(
+                child: Text(
+                  'Вы ввели неверный пароль',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ),
+              title: 'This is Ignored',
+              desc: 'This is also Ignored',
+              btnOkOnPress: () {},
+            ).show();
+          print('Wrong password provided for that user.');
+        }
+      }
+    }
+    if (passwordFormData.validate()) {
+      passwordFormData.save();
+    } else {
+      print(userCredential.user.email);
+    }
+  }
+
   Future<UserCredential> signInWithGoogle() async {
     // Trigger the authentication flow
     final GoogleSignInAccount googleUser = await GoogleSignIn().signIn();
@@ -68,28 +121,50 @@ class _LoginScreenState extends State<LoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-                  'Email',
+          'Email',
           style: kLabelStyle,
         ),
         const SizedBox(
           height: 10.0,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: kBoxDecorationStyle,
-          height: 60,
-          child: const TextField(
-            keyboardType: TextInputType.emailAddress,
-            style: TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.email,
-                color: Colors.white,
+        Form(
+          key: emailFormState,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            decoration: kBoxDecorationStyle,
+            height: 60,
+            child: TextFormField(
+              onSaved: (val) {
+                email = val;
+              },
+              validator: (val) {
+                if (val.length > 32) {
+                  return 'Email cannot be more than 32 characters';
+                }
+                if (val.isEmpty) {
+                  'this is a required field, it cannot be empty';
+                }
+                if (val.length < 4) {
+                  return 'Password cannot be less than 4 characters';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                hintText: 'Email',
+                hintStyle: const TextStyle(color: Colors.white60),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(12.0)),
+                prefixIcon: const Icon(
+                  Icons.mail,
+                  color: Colors.white,
+                ),
               ),
-              hintText: 'Enter yuor Email',
-              hintStyle: kHintTextStyle,
+              keyboardType: TextInputType.text,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 18),
             ),
           ),
         )
@@ -97,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget   _buildPassword() {
+  Widget _buildPassword() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -108,22 +183,44 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(
           height: 10.0,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: kBoxDecorationStyle,
-          height: 60,
-          child: const TextField(
-            obscureText: true,
-            style: TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.lock,
-                color: Colors.white,
+        Form(
+          key: passwordFormState,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            decoration: kBoxDecorationStyle,
+            height: 60,
+            child: TextFormField(
+              onSaved: (val) {
+                password = val;
+              },
+              validator: (val) {
+                if (val.length > 32) {
+                  return 'Password cannot be more than 32 characters';
+                }
+                if (val.isEmpty) {
+                  'this is a required field, it cannot be empty';
+                }
+                if (val.length < 4) {
+                  return 'Password cannot be less than 3 characters';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                hintText: 'Password',
+                hintStyle: const TextStyle(color: Colors.white60),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(12.0)),
+                prefixIcon: const Icon(
+                  Icons.lock,
+                  color: Colors.white,
+                ),
               ),
-              hintText: 'Enter yuor Password',
-              hintStyle: kHintTextStyle,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 18),
             ),
           ),
         )
@@ -171,14 +268,35 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLogin() {
+  Widget _buildLoginButton() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 25.0),
       child: MaterialButton(
         color: Colors.white,
         elevation: 5.0,
-        onPressed: () {},
+        // ignore: void_checks
+        onPressed: () async {
+         await signInWithEmail();
+          
+
+          if (signInWithEmail != null) {
+            return AwesomeDialog(
+              context: context,
+              animType: AnimType.SCALE,
+              dialogType: DialogType.INFO_REVERSED,
+              body: const Center(
+                child: Text(
+                  'Вход успешно завершён',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ),
+              title: 'This is Ignored',
+              desc: 'This is also Ignored',
+              btnOkOnPress: () {},
+            ).show();
+          }
+        },
         padding: const EdgeInsets.all(15.0),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
@@ -262,8 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
               try {
                 userCredential = await FirebaseAuth.instance
                     .createUserWithEmailAndPassword(
-                        email: "Ulamuyaman@gmail.com",
-                        password: "sadid123451988");
+                        email: "salman.com", password: "sadid123451988");
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'weak-password') {
                   print('The password provided is too weak.');
@@ -299,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           GestureDetector(
             onTap: () async {
-               userCredential = await signInWithGoogle();
+              userCredential = await signInWithGoogle();
               print(userCredential);
             },
             child: Container(
@@ -384,9 +501,7 @@ class _LoginScreenState extends State<LoginScreen> {
             print(e);
           }
         },
-        child: Row(
-          mainAxisAlignment:MainAxisAlignment.center,
-          children: [
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           const Text('Dont\'t have an Account? ',
               style: TextStyle(
                 color: Colors.white,
@@ -395,7 +510,7 @@ class _LoginScreenState extends State<LoginScreen> {
               )),
           TextButton(
             onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return const SigneUpScreen();
               }));
             },
@@ -470,7 +585,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildPassword(),
                       _buildForgotPassword(),
                       _buildRememberCheckbox(),
-                      _buildLogin(),
+                      _buildLoginButton(),
                       _buildSignWith(),
                       _buildSignUpWithGoogle(),
                       _buildSignUp(),

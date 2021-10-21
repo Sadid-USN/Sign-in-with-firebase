@@ -29,22 +29,15 @@ class _SigneUpScreenState extends State<SigneUpScreen> {
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak password') {
           print('The password provided is too weak.');
-        } else if (e.code == 'email-already-in-use') {
-         
-        }
+        } else if (e.code == 'email-already-in-use') {}
       } catch (e) {
         print(e);
       }
-      print('Username successfully validated');
     }
- 
+
     if (passwordFormData.validate()) {
       passwordFormData.save();
-
-      print('Password adress successfully validated');
-    } else {
-    
-    }
+    } else {}
   }
 
   @override
@@ -102,14 +95,15 @@ class _SigneUpScreenState extends State<SigneUpScreen> {
                   email = val;
                 },
                 validator: (val) {
-                  if (val.length > 32) {
-                    return 'Email cannot be more than 32 characters';
-                  }
                   if (val.isEmpty) {
                     'this is a required field, it cannot be empty';
                   }
+                  if (val.length > 32) {
+                    return 'Email cannot be more than 32 characters';
+                  }
+
                   if (val.length < 4) {
-                    return 'Email cannot be less than 3 characters';
+                    return 'Email cannot be less than 4 characters';
                   }
                   return null;
                 },
@@ -136,15 +130,16 @@ class _SigneUpScreenState extends State<SigneUpScreen> {
                   password = val;
                 },
                 validator: (val) {
-                  if (val.length > 32) {
-                    return 'Password cannot be more than 32 characters';
-                  }
                   if (val.isEmpty) {
                     'this is a required field, it cannot be empty';
                   }
-                  if (val.length < 4) {
-                    return 'Password cannot be less than 3 characters';
+                  if (val.length > 32) {
+                    return 'Password cannot be more than 32 characters';
                   }
+                  if (val.length < 4) {
+                    return 'Password cannot be less than 4 characters';
+                  }
+
                   return null;
                 },
                 decoration: InputDecoration(
@@ -191,6 +186,8 @@ class _SigneUpScreenState extends State<SigneUpScreen> {
               ],
             ),
           ),
+
+          // BUTTON
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 80),
             child: MaterialButton(
